@@ -29,10 +29,11 @@ const ProjectShowcaseSection = () => {
               {/* Project Screenshot Placeholder */}
               <div className="mx-6 mb-6 flex aspect-[16/10] items-center justify-center rounded-2xl border border-dashed border-brand-primary/35 bg-gradient-to-br from-brand-light to-white sm:mx-7 sm:mb-7">
                 <div className="text-center">
-                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-darkblue/70">
-                    {project.placeholder}
-                  </p>
-                  <p className="mt-2 text-xs text-slate-500">Screenshot placeholder</p>
+                  <img
+                    src={project.icon}
+                    className="w-auto object-contain"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             </motion.article>

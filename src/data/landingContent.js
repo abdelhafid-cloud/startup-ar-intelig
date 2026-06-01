@@ -94,12 +94,12 @@ export const projectShowcase = [
     title: 'AI Appointment Assistant',
     description:
       'Automates appointment booking through WhatsApp and synchronizes data with Google Sheets.',
-    placeholder: 'WhatsApp Automation Screenshot',
+    icon: '/projet-picture/image.png',
   },
   {
     title: 'Enterprise RAG Platform',
     description:
       'Upload documents and instantly chat with company knowledge.',
-    placeholder: 'RAG Platform Screenshot',
+    icon: '/projet-pictures/whatsapp.png',
   },
 ]
