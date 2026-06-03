@@ -99,7 +99,7 @@ export const projectShowcase = [
   {
     title: 'Enterprise RAG Platform',
     description:
-      'Upload documents and instantly chat with company knowledge.',
-    icon: '/projet-pictures/whatsapp.png',
+      'Automates Upload documents and instantly chat with company knowledge.',
+    icon: '/projet-picture/tag.png',
   },
 ]
