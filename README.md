@@ -24,7 +24,7 @@ Le formulaire envoie **2 e-mails** via [EmailJS](https://www.emailjs.com) :
 
 | Champ | Valeur |
 |--------|--------|
-| **To Email** | `{{to_email}}` ← **e-mail du CEO** (`VITE_EMAILJS_CEO_EMAIL`) |
+| **To Email** | `{{to_email}}` ou `{{email}}` ← **CEO** (pas `{{user_email}}`) |
 | **From Name** | `AR Intelligence` |
 | **Reply-To** | `{{user_email}}` ← e-mail du prospect |
 | **Subject** | `Demo request — {{projects}}` |
@@ -39,7 +39,7 @@ Le formulaire envoie **2 e-mails** via [EmailJS](https://www.emailjs.com) :
 
 | Champ | Valeur |
 |--------|--------|
-| **To Email** | `{{user_email}}` ← **e-mail du client** (prospect) |
+| **To Email** | `{{email}}` ou `{{user_email}}` ← **client** (prospect) |
 | **From Name** | `AR Intelligence` |
 | **Reply-To** | `{{reply_to}}` ou e-mail du CEO |
 | **Subject** | `Your demo request is confirmed — AR Intelligence` |
@@ -80,7 +80,8 @@ Redémarrez `npm run dev`, testez le formulaire, vérifiez Gmail (spam / Promoti
 
 ### Dépannage
 
-- **Le client reçoit les 2 e-mails, le CEO rien** : le template `VITE_EMAILJS_TEMPLATE_ID` (demande CEO) a un mauvais **To Email** dans EmailJS. Ouvrez ce template → **Settings** → mettez **exactement** `{{to_email}}` (pas `{{user_email}}`, pas `{{email}}`, pas l’e-mail du client). Alternative : mettez l’e-mail du CEO en dur (ex. `abdelhafid@digitgrow.com`) dans **To Email**. Vérifiez aussi que ce template n’est pas le même que la confirmation (IDs différents dans `.env`).
+- **Le client reçoit les 2 e-mails, le CEO rien** : template CEO (`VITE_EMAILJS_TEMPLATE_ID`) → **To** = `{{to_email}}` ou `{{email}}`, **jamais** `{{user_email}}`. Template client → **To** = `{{email}}`. IDs différents dans `.env`.
+- **Erreur 422 en production** : ajoutez toutes les variables `VITE_EMAILJS_*` sur **Vercel → Settings → Environment Variables**, puis redéployez. Sans `VITE_EMAILJS_TO_EMAIL`, le mail CEO échoue (422).
 - Erreur **422** : template CEO → `To Email` = `{{to_email}}` + `VITE_EMAILJS_CEO_EMAIL` (ou `VITE_EMAILJS_TO_EMAIL`) dans `.env` ; template client → `To Email` = `{{user_email}}`. Redémarrez `npm run dev`.
 - Erreur **403** : EmailJS → Account → **Allowed Origins** → ajoutez `http://localhost:5173` (ou votre port Vite).
 - Historique **OK** mais rien dans Gmail : mauvais Template ID dans `.env`, ou e-mails filtrés — utilisez le template créé à l’étape 2, pas « Welcome ».

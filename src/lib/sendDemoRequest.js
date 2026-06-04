@@ -6,7 +6,6 @@ const clientConfirmationTemplateId =
   import.meta.env.VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID?.trim()
 const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim()
 
-/** Inbox du CEO — reçoit chaque demande de démo */
 const ceoEmail =
   import.meta.env.VITE_EMAILJS_CEO_EMAIL?.trim() ||
   import.meta.env.VITE_EMAILJS_TO_EMAIL?.trim()
@@ -38,7 +37,7 @@ const ensureInit = () => {
 }
 
 const getErrorMessage = (error) => {
-  const base =
+  const text =
     error && typeof error === 'object' && 'text' in error && error.text
       ? String(error.text)
       : error instanceof Error
@@ -46,15 +45,40 @@ const getErrorMessage = (error) => {
         : 'Unable to send your request. Please try again.'
 
   const status = error && typeof error === 'object' && 'status' in error ? error.status : null
-  return status ? `${base} (${status})` : base
+  return status ? `${text} (${status})` : text
 }
 
-const sendTemplate = async (templateId, templateParams) => {
-  const result = await emailjs.send(serviceId, templateId, templateParams, { publicKey })
-  if (result.status !== 200) {
-    throw { status: result.status, text: result.text }
+/** Champs alignés sur les noms EmailJS (sendForm) */
+const buildHiddenForm = (fields) => {
+  const form = document.createElement('form')
+  form.style.display = 'none'
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = name
+    input.value = String(value ?? '')
+    form.appendChild(input)
+  })
+
+  document.body.appendChild(form)
+  return form
+}
+
+const sendTemplate = async (templateId, fields, stepLabel) => {
+  const form = buildHiddenForm(fields)
+  try {
+    const result = await emailjs.sendForm(serviceId, templateId, form, { publicKey })
+    if (result.status !== 200) {
+      throw { status: result.status, text: result.text }
+    }
+    return result
+  } catch (error) {
+    const detail = getErrorMessage(error)
+    throw new Error(`${stepLabel}: ${detail}`)
+  } finally {
+    form.remove()
   }
-  return result
 }
 
 export const isEmailConfigured = () =>
@@ -66,53 +90,56 @@ export const isEmailConfigured = () =>
       ceoEmail?.includes('@'),
   )
 
-/** Params pour le mail CEO — pas de champ "email" (souvent utilisé par erreur comme destinataire) */
-const buildCeoNotificationParams = ({
+const baseFields = ({ name, clientEmail, company, projectLabels }) => ({
+  site_url: getSiteUrl(),
+  logo_url: getLogoUrl(),
+  user_name: name,
+  name,
+  company: company || '—',
+  projects: projectLabels,
+})
+
+/**
+ * Mail 1 → CEO
+ * To Email dans EmailJS : {{to_email}} OU {{email}} (les deux = inbox CEO)
+ * Ne pas mettre {{user_email}} dans To sur ce template.
+ */
+const buildCeoNotificationFields = ({
   name,
   clientEmail,
   company,
   projectLabels,
   message,
 }) => ({
-  site_url: getSiteUrl(),
-  logo_url: getLogoUrl(),
+  ...baseFields({ name, clientEmail, company, projectLabels }),
   to_email: ceoEmail,
-  user_name: name,
-  name,
+  email: ceoEmail,
   user_email: clientEmail,
-  company: company || '—',
-  projects: projectLabels,
   message: message || '—',
   reply_to: clientEmail,
   from_name: 'AR Intelligence Website',
   subject: `Demo request — ${projectLabels}`,
 })
 
-/** Params pour la confirmation client */
-const buildClientConfirmationParams = ({
+/**
+ * Mail 2 → client (auto-reply)
+ * To Email dans EmailJS : {{email}} ou {{user_email}}
+ */
+const buildClientConfirmationFields = ({
   name,
   clientEmail,
   company,
   projectLabels,
 }) => ({
-  site_url: getSiteUrl(),
-  logo_url: getLogoUrl(),
-  user_name: name,
-  name,
-  user_email: clientEmail,
-  email: clientEmail,
+  ...baseFields({ name, clientEmail, company, projectLabels }),
   to_email: clientEmail,
-  company: company || '—',
-  projects: projectLabels,
+  email: clientEmail,
+  user_email: clientEmail,
   reply_to: ceoEmail,
   from_name: 'AR Intelligence',
   subject: 'Your demo request is confirmed — AR Intelligence',
 })
 
-/**
- * 1. E-mail au CEO (nouvelle demande de démo)
- * 2. E-mail de confirmation au client (prospect)
- */
 export const sendDemoRequest = async ({
   name,
   email: clientEmail,
@@ -122,34 +149,36 @@ export const sendDemoRequest = async ({
 }) => {
   if (!isEmailConfigured()) {
     throw new Error(
-      'Email not configured. Set VITE_EMAILJS_CEO_EMAIL (or TO_EMAIL), both template IDs, and PUBLIC_KEY in .env.',
+      'Email not configured. Set VITE_EMAILJS_TO_EMAIL (CEO inbox) and all VITE_EMAILJS_* keys in .env — also on Vercel if deployed.',
     )
+  }
+
+  if (!ceoEmail?.includes('@')) {
+    throw new Error('CEO email missing. Set VITE_EMAILJS_TO_EMAIL in .env and redeploy.')
   }
 
   ensureInit()
 
-  try {
-    await sendTemplate(
-      ceoNotificationTemplateId,
-      buildCeoNotificationParams({
-        name,
-        clientEmail,
-        company,
-        projectLabels,
-        message,
-      }),
-    )
+  await sendTemplate(
+    ceoNotificationTemplateId,
+    buildCeoNotificationFields({
+      name,
+      clientEmail,
+      company,
+      projectLabels,
+      message,
+    }),
+    'CEO notification',
+  )
 
-    await sendTemplate(
-      clientConfirmationTemplateId,
-      buildClientConfirmationParams({
-        name,
-        clientEmail,
-        company,
-        projectLabels,
-      }),
-    )
-  } catch (error) {
-    throw new Error(getErrorMessage(error))
-  }
+  await sendTemplate(
+    clientConfirmationTemplateId,
+    buildClientConfirmationFields({
+      name,
+      clientEmail,
+      company,
+      projectLabels,
+    }),
+    'Client confirmation',
+  )
 }

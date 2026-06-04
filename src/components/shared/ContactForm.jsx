@@ -38,8 +38,16 @@ const ContactForm = () => {
     event.preventDefault()
     setErrorMessage('')
 
-    if (!name.trim() || !email.trim()) {
+    const trimmedEmail = email.trim()
+
+    if (!name.trim() || !trimmedEmail) {
       setErrorMessage('Please enter your name and email.')
+      setStatus('error')
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setErrorMessage('Please enter a valid email address.')
       setStatus('error')
       return
     }
@@ -68,7 +76,7 @@ const ContactForm = () => {
     try {
       await sendDemoRequest({
         name: name.trim(),
-        email: email.trim(),
+        email: trimmedEmail,
         company: company.trim(),
         message: message.trim(),
         projectLabels,
