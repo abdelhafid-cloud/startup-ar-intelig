@@ -181,7 +181,7 @@ const ContactForm = () => {
 
       {status === 'success' && (
         <p className="mt-4 rounded-xl border border-emerald-300/40 bg-emerald-500/15 px-3 py-2 text-sm text-emerald-50" role="status">
-          Thank you! Your demo request was sent. We will contact you shortly.
+          Thank you! Your demo request was sent. A confirmation email has been sent to your inbox — we will contact you shortly.
         </p>
       )}
 

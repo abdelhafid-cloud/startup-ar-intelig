@@ -24,7 +24,25 @@ Le formulaire envoie des notifications **HTML branded** via [EmailJS](https://ww
 | **Reply-To** | `{{user_email}}` |
 | **Subject** | `Demo request — {{projects}}` |
 
-5. Notez le **Template ID** (ex. `template_xyz789`).
+5. Notez le **Template ID** → `VITE_EMAILJS_TEMPLATE_ID`.
+
+### 2b. Template confirmation client (auto-reply)
+
+1. **Email Templates → Create New Template** — nom : `AR Demo Confirmation`.
+2. Collez le HTML de `email-templates/demo-confirmation.html`.
+3. **Settings** :
+
+| Champ | Valeur |
+|--------|--------|
+| **To Email** | `{{user_email}}` ← le client qui a rempli le formulaire |
+| **From Name** | `AR Intelligence` |
+| **Reply-To** | votre e-mail ou `hello@arintelligence.ai` |
+| **Subject** | `Your demo request is confirmed — AR Intelligence` |
+
+4. Même `{{logo_url}}` que le template admin (imgbb ou Vercel).
+5. Notez le **Template ID** → `VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID`.
+
+À chaque envoi du formulaire : **vous** recevez la demande + **le client** reçoit la confirmation automatique.
 
 ### 3. Variables `.env`
 
@@ -33,6 +51,7 @@ Copiez `.env.example` vers `.env` :
 ```env
 VITE_EMAILJS_SERVICE_ID=service_xxxxx
 VITE_EMAILJS_TEMPLATE_ID=template_xxxxx
+VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID=template_auto_xxxxx
 VITE_EMAILJS_PUBLIC_KEY=xxxxxxxx
 VITE_EMAILJS_TO_EMAIL=votre@gmail.com
 ```

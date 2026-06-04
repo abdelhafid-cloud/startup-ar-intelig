@@ -2,6 +2,7 @@ import emailjs from '@emailjs/browser'
 
 const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID?.trim()
 const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID?.trim()
+const autoReplyTemplateId = import.meta.env.VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID?.trim()
 const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim()
 const toEmail = import.meta.env.VITE_EMAILJS_TO_EMAIL?.trim()
 const siteUrl = import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, '')
@@ -15,7 +16,6 @@ const getSiteUrl = () => {
   return 'https://arintelligence.ai'
 }
 
-/** Gmail requires a public HTTPS image URL (no base64, no localhost). */
 export const getLogoUrl = () => {
   if (logoUrl) return logoUrl
   const base = siteUrl || (typeof window !== 'undefined' ? window.location?.origin : '')
@@ -42,11 +42,11 @@ const getErrorMessage = (error) => {
   const status = error && typeof error === 'object' && 'status' in error ? error.status : null
 
   if (status === 422) {
-    return `${base} — Vérifiez dans EmailJS : To Email = {{to_email}} et VITE_EMAILJS_TO_EMAIL dans .env`
+    return `${base} — Check EmailJS template settings (To Email, variables).`
   }
 
   if (status === 403) {
-    return `${base} — Ajoutez http://localhost:5173 dans EmailJS → Account → Allowed Origins`
+    return `${base} — Add your dev URL in EmailJS → Account → Allowed Origins.`
   }
 
   return status ? `${base} (${status})` : base
@@ -68,8 +68,38 @@ const buildHiddenForm = (fields) => {
   return form
 }
 
+const sendTemplate = async (template, fields) => {
+  const form = buildHiddenForm(fields)
+  try {
+    const result = await emailjs.sendForm(serviceId, template, form, { publicKey })
+    if (result.status !== 200) {
+      throw { status: result.status, text: result.text }
+    }
+    return result
+  } finally {
+    form.remove()
+  }
+}
+
 export const isEmailConfigured = () =>
-  Boolean(serviceId && templateId && publicKey && toEmail?.includes('@'))
+  Boolean(
+    serviceId &&
+      templateId &&
+      autoReplyTemplateId &&
+      publicKey &&
+      toEmail?.includes('@'),
+  )
+
+const buildSharedParams = ({ name, email, company, projectLabels }) => ({
+  site_url: getSiteUrl(),
+  logo_url: getLogoUrl(),
+  user_name: name,
+  name,
+  user_email: email,
+  email,
+  company: company || '—',
+  projects: projectLabels,
+})
 
 export const sendDemoRequest = async ({
   name,
@@ -80,41 +110,32 @@ export const sendDemoRequest = async ({
 }) => {
   if (!isEmailConfigured()) {
     throw new Error(
-      'Email not configured. Set VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, VITE_EMAILJS_PUBLIC_KEY and VITE_EMAILJS_TO_EMAIL in .env',
+      'Email not configured. Set all VITE_EMAILJS_* variables in .env (see README).',
     )
   }
 
   ensureInit()
 
-  const fields = {
-    to_email: toEmail,
-    email: toEmail,
-    user_name: name,
-    name,
-    user_email: email,
-    reply_to: email,
-    from_name: 'AR Intelligence',
-    company: company || '-',
-    projects: projectLabels,
-    message: message || '-',
-    subject: `Demo request — ${projectLabels}`,
-    site_url: getSiteUrl(),
-    logo_url: getLogoUrl(),
-  }
-
-  const form = buildHiddenForm(fields)
+  const shared = buildSharedParams({ name, email, company, projectLabels })
 
   try {
-    const result = await emailjs.sendForm(serviceId, templateId, form, { publicKey })
+    await sendTemplate(templateId, {
+      ...shared,
+      to_email: toEmail,
+      reply_to: email,
+      from_name: 'AR Intelligence',
+      message: message || '—',
+      subject: `Demo request — ${projectLabels}`,
+    })
 
-    if (result.status !== 200) {
-      throw { status: result.status, text: result.text }
-    }
-
-    return result
+    await sendTemplate(autoReplyTemplateId, {
+      ...shared,
+      to_email: email,
+      reply_to: toEmail,
+      from_name: 'AR Intelligence',
+      subject: 'Your demo request is confirmed — AR Intelligence',
+    })
   } catch (error) {
     throw new Error(getErrorMessage(error))
-  } finally {
-    form.remove()
   }
 }
