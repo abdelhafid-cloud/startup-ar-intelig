@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
 import SectionHeading from '../shared/SectionHeading'
 import { projectShowcase } from '../../data/landingContent'
 
@@ -15,7 +16,7 @@ const ProjectShowcaseSection = () => {
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
           {projectShowcase.map((project, index) => (
             <motion.article
-              key={project.title}
+              key={project.id}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.25 }}
@@ -25,6 +26,13 @@ const ProjectShowcaseSection = () => {
               <div className="p-6 sm:p-7">
                 <h3 className="text-xl font-semibold text-brand-ink">{project.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">{project.description}</p>
+                <a
+                  href={`#contact?projects=${project.id}`}
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-secondary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-darkblue"
+                >
+                  Book a Demo
+                  <ArrowRight size={16} />
+                </a>
               </div>
               {/* Project Screenshot Placeholder */}
               <div className="mx-6 mb-6 flex aspect-[16/10] items-center justify-center rounded-2xl border border-dashed border-brand-primary/35 bg-gradient-to-br from-brand-light to-white sm:mx-7 sm:mb-7">

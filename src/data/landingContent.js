@@ -91,15 +91,23 @@ export const stats = [
 
 export const projectShowcase = [
   {
+    id: 'appointment-assistant',
     title: 'AI Appointment Assistant',
     description:
       'Automates appointment booking through WhatsApp and synchronizes data with Google Sheets.',
     icon: '/projet-picture/image.png',
   },
   {
+    id: 'enterprise-rag',
     title: 'Enterprise RAG Platform',
     description:
       'Automates Upload documents and instantly chat with company knowledge.',
     icon: '/projet-picture/tag.png',
   },
 ]
+
+/** Options for demo / contact form (one or both projects) */
+export const demoProjectOptions = projectShowcase.map(({ id, title }) => ({
+  id,
+  label: title,
+}))

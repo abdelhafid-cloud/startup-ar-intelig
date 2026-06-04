@@ -1,0 +1,184 @@
+<!--
+  AR Intelligence — EmailJS (type: HTML)
+  Subject: Demo request — {{projects}}
+  Reply-To: {{user_email}}
+
+  Variables : {{to_email}} {{user_name}} {{user_email}} {{company}} {{projects}} {{message}} {{site_url}}
+  To Email (dashboard, obligatoire) : {{to_email}}
+  Reply-To : {{user_email}}
+  Logo : {{logo_url}} — URL publique (VITE_LOGO_URL ou VITE_SITE_URL)
+-->
+<style type="text/css">
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+  table {
+    border-collapse: collapse;
+    mso-table-lspace: 0pt;
+    mso-table-rspace: 0pt;
+  }
+  img {
+    border: 0;
+    outline: none;
+    text-decoration: none;
+    -ms-interpolation-mode: bicubic;
+    max-width: 100%;
+    height: auto;
+  }
+  a {
+    word-break: break-word;
+  }
+  @media only screen and (max-width: 620px) {
+    .email-wrapper {
+      padding: 12px 10px 24px !important;
+    }
+    .email-card {
+      width: 100% !important;
+      max-width: 100% !important;
+      border-radius: 12px !important;
+    }
+    .header-cell {
+      padding: 20px 18px !important;
+    }
+    .body-cell,
+    .footer-cell {
+      padding: 20px 18px !important;
+    }
+    .email-title {
+      font-size: 20px !important;
+      line-height: 1.25 !important;
+    }
+    .intro-text {
+      font-size: 14px !important;
+    }
+    .field-label,
+    .field-value {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .field-label {
+      padding: 12px 14px 4px !important;
+      border-bottom: none !important;
+    }
+    .field-value {
+      padding: 0 14px 14px !important;
+      border-bottom: 1px solid #f1ecff !important;
+    }
+    .field-row-last .field-value {
+      border-bottom: none !important;
+      padding-bottom: 12px !important;
+    }
+    .project-badge {
+      display: block !important;
+      max-width: 100% !important;
+      word-break: break-word !important;
+      text-align: left !important;
+    }
+    .footer-text {
+      font-size: 12px !important;
+    }
+  }
+</style>
+<div style="margin:0;padding:0;width:100%;background-color:#f4f0ff;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#23114d;">
+  <div class="email-wrapper" style="max-width:600px;width:100%;margin:0 auto;padding:24px 16px 32px;box-sizing:border-box;">
+    <table
+      class="email-card"
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      style="width:100%;max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e9e0ff;box-shadow:0 4px 24px rgba(59,7,100,0.08);"
+    >
+      <tr>
+        <td class="header-cell" style="background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 50%,#3b0764 100%);padding:28px 32px;">
+          <a href="{{site_url}}" target="_blank" style="text-decoration:none;outline:none;display:inline-block;margin-bottom:14px;">
+            <img
+              src="{{logo_url}}"
+              alt="AR Intelligence"
+              width="48"
+              height="48"
+              style="height:48px;width:48px;max-width:48px;border-radius:10px;display:block;"
+            />
+          </a>
+          <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.85);">AR Intelligence</p>
+          <h1 class="email-title" style="margin:0;font-size:22px;font-weight:700;line-height:1.3;color:#ffffff;">New demo request</h1>
+          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:rgba(255,255,255,0.92);">A prospect wants to discover your AI solutions.</p>
+        </td>
+      </tr>
+      <tr>
+        <td class="body-cell" style="padding:28px 32px;">
+          <p class="intro-text" style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#475569;">
+            Hello,<br />
+            A new <strong style="color:#23114d;">Book a Demo</strong> request was submitted on your website.
+          </p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;background:#faf8ff;border-radius:12px;border:1px solid #f1ecff;">
+            <tr class="field-row">
+              <td class="field-label" style="padding:14px 18px;border-bottom:1px solid #f1ecff;width:28%;min-width:100px;vertical-align:top;">
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6d28d9;">Name</span>
+              </td>
+              <td class="field-value" style="padding:14px 18px;border-bottom:1px solid #f1ecff;vertical-align:top;">
+                <span style="font-size:15px;line-height:1.5;color:#23114d;word-break:break-word;">{{user_name}}</span>
+              </td>
+            </tr>
+            <tr class="field-row">
+              <td class="field-label" style="padding:14px 18px;border-bottom:1px solid #f1ecff;vertical-align:top;">
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6d28d9;">Email</span>
+              </td>
+              <td class="field-value" style="padding:14px 18px;border-bottom:1px solid #f1ecff;vertical-align:top;">
+                <a href="mailto:{{user_email}}" style="font-size:15px;line-height:1.5;color:#7c3aed;text-decoration:none;font-weight:500;word-break:break-all;">{{user_email}}</a>
+              </td>
+            </tr>
+            <tr class="field-row">
+              <td class="field-label" style="padding:14px 18px;border-bottom:1px solid #f1ecff;vertical-align:top;">
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6d28d9;">Company</span>
+              </td>
+              <td class="field-value" style="padding:14px 18px;border-bottom:1px solid #f1ecff;vertical-align:top;">
+                <span style="font-size:15px;line-height:1.5;color:#23114d;word-break:break-word;">{{company}}</span>
+              </td>
+            </tr>
+            <tr class="field-row">
+              <td class="field-label" style="padding:14px 18px;border-bottom:1px solid #f1ecff;vertical-align:top;">
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6d28d9;">Projects</span>
+              </td>
+              <td class="field-value" style="padding:14px 18px;border-bottom:1px solid #f1ecff;vertical-align:top;">
+                <span class="project-badge" style="display:inline-block;max-width:100%;font-size:13px;line-height:1.4;font-weight:600;color:#3b0764;background:#ede9fe;border:1px solid #ddd6fe;border-radius:999px;padding:6px 14px;word-break:break-word;">{{projects}}</span>
+              </td>
+            </tr>
+            <tr class="field-row field-row-last">
+              <td class="field-label" style="padding:14px 18px;vertical-align:top;">
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6d28d9;">Message</span>
+              </td>
+              <td class="field-value" style="padding:14px 18px;vertical-align:top;">
+                <p style="margin:0;font-size:15px;line-height:1.6;color:#475569;white-space:pre-wrap;word-break:break-word;">{{message}}</p>
+              </td>
+            </tr>
+          </table>
+          <p class="intro-text" style="margin:22px 0 0;font-size:15px;line-height:1.6;color:#475569;">
+            Reply promptly to schedule the demonstration.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td class="footer-cell" style="padding:20px 32px;background:#faf8ff;border-top:1px solid #f1ecff;text-align:center;">
+          <p class="footer-text" style="margin:0 0 6px;font-size:13px;line-height:1.5;color:#64748b;">
+            Best regards,<br />
+            <strong style="color:#23114d;">The AR Intelligence Team</strong>
+          </p>
+          <p class="footer-text" style="margin:12px 0 0;font-size:12px;line-height:1.5;color:#94a3b8;word-break:break-word;">
+            Questions?
+            <a href="mailto:hello@arintelligence.ai" style="text-decoration:none;color:#7c3aed;font-weight:500;">hello@arintelligence.ai</a>
+          </p>
+          <p class="footer-text" style="margin:14px 0 0;font-size:11px;line-height:1.45;color:#cbd5e1;">
+            AR Intelligence · Transforming Business Through Artificial Intelligence
+          </p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

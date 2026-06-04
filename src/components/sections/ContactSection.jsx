@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowUpRight, Link2, Mail } from 'lucide-react'
+import ContactForm from '../shared/ContactForm'
 
 const footerLinks = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com' },
@@ -35,56 +36,7 @@ const ContactSection = () => {
               </p>
             </div>
 
-            <form className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-lg sm:p-6" aria-label="Contact form">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="text-sm font-medium text-violet-50 sm:col-span-1">
-                  Name
-                  <input
-                    type="text"
-                    name="name"
-                    autoComplete="name"
-                    className="mt-2 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-violet-100/70 focus:border-brand-primary focus:outline-none"
-                    placeholder="Your name"
-                  />
-                </label>
-                <label className="text-sm font-medium text-violet-50 sm:col-span-1">
-                  Email
-                  <input
-                    type="email"
-                    name="email"
-                    autoComplete="email"
-                    className="mt-2 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-violet-100/70 focus:border-brand-primary focus:outline-none"
-                    placeholder="you@company.com"
-                  />
-                </label>
-                <label className="text-sm font-medium text-violet-50 sm:col-span-2">
-                  Company
-                  <input
-                    type="text"
-                    name="company"
-                    autoComplete="organization"
-                    className="mt-2 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-violet-100/70 focus:border-brand-primary focus:outline-none"
-                    placeholder="Company name"
-                  />
-                </label>
-                <label className="text-sm font-medium text-violet-50 sm:col-span-2">
-                  Message
-                  <textarea
-                    name="message"
-                    rows={4}
-                    className="mt-2 w-full resize-none rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/70 focus:border-brand-primary focus:outline-none"
-                    placeholder="Tell us about your project"
-                  />
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                className="mt-5 w-full rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-darkblue transition hover:bg-brand-light"
-              >
-                Schedule Consultation
-              </button>
-            </form>
+            <ContactForm />
           </div>
         </motion.div>
 

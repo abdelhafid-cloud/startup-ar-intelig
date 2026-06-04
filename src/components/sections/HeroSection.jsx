@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Menu, Sparkles, X, Brain } from 'lucide-react'
+import { ArrowRight, Menu, X, Brain } from 'lucide-react'
 import { navigationLinks } from '../../data/landingContent'
 
 const HeroSection = () => {
@@ -134,19 +134,16 @@ const HeroSection = () => {
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut', delay: 0.12 }}
-            className="relative mx-auto w-full max-w-[30rem]"
+            className="relative mx-auto w-full max-w-2xl lg:max-w-none"
           >
             <div className="pointer-events-none absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-br from-brand-primary/20 via-white/20 to-brand-secondary/20 blur-2xl" />
-            <div className="rounded-[2rem] border border-white/70 bg-white/65 p-4 shadow-2xl shadow-brand-darkest/10 backdrop-blur-xl sm:p-5">
-              {/* AI Hero Image Placeholder */}
-              <div className="flex aspect-[5/4] items-center justify-center rounded-2xl border border-dashed border-brand-primary/35 bg-gradient-to-br from-brand-light to-white">
-                <div className="text-center">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-darkblue/70 sm:text-sm">
-                    AI Dashboard Illustration
-                  </p>
-                  <p className="mt-2 text-xs text-slate-600 sm:text-sm">Image placeholder area</p>
-                </div>
-              </div>
+            <div className="rounded-[2rem] border border-white/70 bg-white/65 p-3 shadow-2xl shadow-brand-darkest/10 backdrop-blur-xl sm:p-4">
+              <img
+                src="/projet-picture/dash.png"
+                alt="Tableau de bord AR Intelligence — analyses IA et gestion de documents"
+                className="aspect-[16/10] w-full rounded-2xl border border-slate-200/40 bg-slate-50 object-contain"
+                loading="eager"
+              />
             </div>
           </motion.div>
         </div>
