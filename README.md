@@ -2,7 +2,12 @@
 
 ## Email professionnel (EmailJS — seule solution)
 
-Le formulaire envoie des notifications **HTML branded** via [EmailJS](https://www.emailjs.com). Template : `email-templates/demo-request.html`.
+Le formulaire envoie **2 e-mails** via [EmailJS](https://www.emailjs.com) :
+
+| Qui reçoit | Template | Fichier HTML |
+|------------|----------|----------------|
+| **CEO** — nouvelle demande de démo | `VITE_EMAILJS_TEMPLATE_ID` | `email-templates/demo-request.html` |
+| **Client** — confirmation automatique | `VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID` | `email-templates/demo-confirmation.html` |
 
 ### 1. Compte & service Gmail
 
@@ -19,14 +24,14 @@ Le formulaire envoie des notifications **HTML branded** via [EmailJS](https://ww
 
 | Champ | Valeur |
 |--------|--------|
-| **To Email** | `{{to_email}}` |
+| **To Email** | `{{to_email}}` ← **e-mail du CEO** (`VITE_EMAILJS_CEO_EMAIL`) |
 | **From Name** | `AR Intelligence` |
-| **Reply-To** | `{{user_email}}` |
+| **Reply-To** | `{{user_email}}` ← e-mail du prospect |
 | **Subject** | `Demo request — {{projects}}` |
 
 5. Notez le **Template ID** → `VITE_EMAILJS_TEMPLATE_ID`.
 
-### 2b. Template confirmation client (auto-reply)
+### 2b. Template confirmation **client**
 
 1. **Email Templates → Create New Template** — nom : `AR Demo Confirmation`.
 2. Collez le HTML de `email-templates/demo-confirmation.html`.
@@ -34,15 +39,13 @@ Le formulaire envoie des notifications **HTML branded** via [EmailJS](https://ww
 
 | Champ | Valeur |
 |--------|--------|
-| **To Email** | `{{user_email}}` ← le client qui a rempli le formulaire |
+| **To Email** | `{{user_email}}` ← **e-mail du client** (prospect) |
 | **From Name** | `AR Intelligence` |
-| **Reply-To** | votre e-mail ou `hello@arintelligence.ai` |
+| **Reply-To** | `{{reply_to}}` ou e-mail du CEO |
 | **Subject** | `Your demo request is confirmed — AR Intelligence` |
 
-4. Même `{{logo_url}}` que le template admin (imgbb ou Vercel).
-5. Notez le **Template ID** → `VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID`.
-
-À chaque envoi du formulaire : **vous** recevez la demande + **le client** reçoit la confirmation automatique.
+4. Même `{{logo_url}}` que le template CEO (imgbb ou Vercel).
+5. Notez le **Template ID** → `VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID` (doit être **différent** du template CEO).
 
 ### 3. Variables `.env`
 
@@ -50,14 +53,15 @@ Copiez `.env.example` vers `.env` :
 
 ```env
 VITE_EMAILJS_SERVICE_ID=service_xxxxx
+VITE_EMAILJS_PUBLIC_KEY=xxxxxxxx
+VITE_EMAILJS_CEO_EMAIL=ceo@arintelligence.ai
 VITE_EMAILJS_TEMPLATE_ID=template_xxxxx
 VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID=template_auto_xxxxx
-VITE_EMAILJS_PUBLIC_KEY=xxxxxxxx
-VITE_EMAILJS_TO_EMAIL=votre@gmail.com
 ```
 
-- **Public Key** : EmailJS → Account → API Keys.
-- **TO_EMAIL** : la boîte Gmail où vous recevez les demandes de démo (souvent la même que le compte connecté au service).
+- **CEO_EMAIL** : boîte du CEO qui reçoit les demandes.
+- **TEMPLATE_ID** : template « demo-request » (To = `{{to_email}}`).
+- **AUTO_REPLY_TEMPLATE_ID** : template « demo-confirmation » (To = `{{user_email}}`).
 - **VITE_SITE_URL** (optionnel) : URL du site pour le lien header `{{site_url}}`.
 
 ### Logo avec plan gratuit EmailJS (sans upload EmailJS)
@@ -76,7 +80,8 @@ Redémarrez `npm run dev`, testez le formulaire, vérifiez Gmail (spam / Promoti
 
 ### Dépannage
 
-- Erreur **422** : `To Email` = `{{to_email}}` dans le template + `VITE_EMAILJS_TO_EMAIL=votre@gmail.com` dans `.env`, puis redémarrer `npm run dev`.
+- **Le client reçoit les 2 e-mails, le CEO rien** : le template `VITE_EMAILJS_TEMPLATE_ID` (demande CEO) a un mauvais **To Email** dans EmailJS. Ouvrez ce template → **Settings** → mettez **exactement** `{{to_email}}` (pas `{{user_email}}`, pas `{{email}}`, pas l’e-mail du client). Alternative : mettez l’e-mail du CEO en dur (ex. `abdelhafid@digitgrow.com`) dans **To Email**. Vérifiez aussi que ce template n’est pas le même que la confirmation (IDs différents dans `.env`).
+- Erreur **422** : template CEO → `To Email` = `{{to_email}}` + `VITE_EMAILJS_CEO_EMAIL` (ou `VITE_EMAILJS_TO_EMAIL`) dans `.env` ; template client → `To Email` = `{{user_email}}`. Redémarrez `npm run dev`.
 - Erreur **403** : EmailJS → Account → **Allowed Origins** → ajoutez `http://localhost:5173` (ou votre port Vite).
 - Historique **OK** mais rien dans Gmail : mauvais Template ID dans `.env`, ou e-mails filtrés — utilisez le template créé à l’étape 2, pas « Welcome ».
 - **Test It** dans EmailJS : si le test arrive mais pas le site, les IDs dans `.env` ne correspondent pas au bon template.

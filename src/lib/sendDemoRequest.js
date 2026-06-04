@@ -1,10 +1,16 @@
 import emailjs from '@emailjs/browser'
 
 const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID?.trim()
-const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID?.trim()
-const autoReplyTemplateId = import.meta.env.VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID?.trim()
+const ceoNotificationTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID?.trim()
+const clientConfirmationTemplateId =
+  import.meta.env.VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID?.trim()
 const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim()
-const toEmail = import.meta.env.VITE_EMAILJS_TO_EMAIL?.trim()
+
+/** Inbox du CEO — reçoit chaque demande de démo */
+const ceoEmail =
+  import.meta.env.VITE_EMAILJS_CEO_EMAIL?.trim() ||
+  import.meta.env.VITE_EMAILJS_TO_EMAIL?.trim()
+
 const siteUrl = import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, '')
 const logoUrl = import.meta.env.VITE_LOGO_URL?.trim()
 
@@ -40,101 +46,109 @@ const getErrorMessage = (error) => {
         : 'Unable to send your request. Please try again.'
 
   const status = error && typeof error === 'object' && 'status' in error ? error.status : null
-
-  if (status === 422) {
-    return `${base} — Check EmailJS template settings (To Email, variables).`
-  }
-
-  if (status === 403) {
-    return `${base} — Add your dev URL in EmailJS → Account → Allowed Origins.`
-  }
-
   return status ? `${base} (${status})` : base
 }
 
-const buildHiddenForm = (fields) => {
-  const form = document.createElement('form')
-  form.style.display = 'none'
-
-  Object.entries(fields).forEach(([name, value]) => {
-    const input = document.createElement('input')
-    input.type = 'hidden'
-    input.name = name
-    input.value = String(value ?? '')
-    form.appendChild(input)
-  })
-
-  document.body.appendChild(form)
-  return form
-}
-
-const sendTemplate = async (template, fields) => {
-  const form = buildHiddenForm(fields)
-  try {
-    const result = await emailjs.sendForm(serviceId, template, form, { publicKey })
-    if (result.status !== 200) {
-      throw { status: result.status, text: result.text }
-    }
-    return result
-  } finally {
-    form.remove()
+const sendTemplate = async (templateId, templateParams) => {
+  const result = await emailjs.send(serviceId, templateId, templateParams, { publicKey })
+  if (result.status !== 200) {
+    throw { status: result.status, text: result.text }
   }
+  return result
 }
 
 export const isEmailConfigured = () =>
   Boolean(
     serviceId &&
-      templateId &&
-      autoReplyTemplateId &&
+      ceoNotificationTemplateId &&
+      clientConfirmationTemplateId &&
       publicKey &&
-      toEmail?.includes('@'),
+      ceoEmail?.includes('@'),
   )
 
-const buildSharedParams = ({ name, email, company, projectLabels }) => ({
+/** Params pour le mail CEO — pas de champ "email" (souvent utilisé par erreur comme destinataire) */
+const buildCeoNotificationParams = ({
+  name,
+  clientEmail,
+  company,
+  projectLabels,
+  message,
+}) => ({
+  site_url: getSiteUrl(),
+  logo_url: getLogoUrl(),
+  to_email: ceoEmail,
+  user_name: name,
+  name,
+  user_email: clientEmail,
+  company: company || '—',
+  projects: projectLabels,
+  message: message || '—',
+  reply_to: clientEmail,
+  from_name: 'AR Intelligence Website',
+  subject: `Demo request — ${projectLabels}`,
+})
+
+/** Params pour la confirmation client */
+const buildClientConfirmationParams = ({
+  name,
+  clientEmail,
+  company,
+  projectLabels,
+}) => ({
   site_url: getSiteUrl(),
   logo_url: getLogoUrl(),
   user_name: name,
   name,
-  user_email: email,
-  email,
+  user_email: clientEmail,
+  email: clientEmail,
+  to_email: clientEmail,
   company: company || '—',
   projects: projectLabels,
+  reply_to: ceoEmail,
+  from_name: 'AR Intelligence',
+  subject: 'Your demo request is confirmed — AR Intelligence',
 })
 
+/**
+ * 1. E-mail au CEO (nouvelle demande de démo)
+ * 2. E-mail de confirmation au client (prospect)
+ */
 export const sendDemoRequest = async ({
   name,
-  email,
+  email: clientEmail,
   company,
   message,
   projectLabels,
 }) => {
   if (!isEmailConfigured()) {
     throw new Error(
-      'Email not configured. Set all VITE_EMAILJS_* variables in .env (see README).',
+      'Email not configured. Set VITE_EMAILJS_CEO_EMAIL (or TO_EMAIL), both template IDs, and PUBLIC_KEY in .env.',
     )
   }
 
   ensureInit()
 
-  const shared = buildSharedParams({ name, email, company, projectLabels })
-
   try {
-    await sendTemplate(templateId, {
-      ...shared,
-      to_email: toEmail,
-      reply_to: email,
-      from_name: 'AR Intelligence',
-      message: message || '—',
-      subject: `Demo request — ${projectLabels}`,
-    })
+    await sendTemplate(
+      ceoNotificationTemplateId,
+      buildCeoNotificationParams({
+        name,
+        clientEmail,
+        company,
+        projectLabels,
+        message,
+      }),
+    )
 
-    await sendTemplate(autoReplyTemplateId, {
-      ...shared,
-      to_email: email,
-      reply_to: toEmail,
-      from_name: 'AR Intelligence',
-      subject: 'Your demo request is confirmed — AR Intelligence',
-    })
+    await sendTemplate(
+      clientConfirmationTemplateId,
+      buildClientConfirmationParams({
+        name,
+        clientEmail,
+        company,
+        projectLabels,
+      }),
+    )
   } catch (error) {
     throw new Error(getErrorMessage(error))
   }
