@@ -81,7 +81,27 @@ Redémarrez `npm run dev`, testez le formulaire, vérifiez Gmail (spam / Promoti
 ### Dépannage
 
 - **Le client reçoit les 2 e-mails, le CEO rien** : template CEO (`VITE_EMAILJS_TEMPLATE_ID`) → **To** = `{{to_email}}` ou `{{email}}`, **jamais** `{{user_email}}`. Template client → **To** = `{{email}}`. IDs différents dans `.env`.
-- **Erreur 422 en production** : ajoutez toutes les variables `VITE_EMAILJS_*` sur **Vercel → Settings → Environment Variables**, puis redéployez. Sans `VITE_EMAILJS_TO_EMAIL`, le mail CEO échoue (422).
+### Déploiement Vercel (obligatoire)
+
+Les variables `VITE_*` sont **injectées au build**, pas au runtime. Le fichier `.env` local **n’est pas** envoyé sur Vercel.
+
+1. **Vercel** → votre projet → **Settings** → **Environment Variables**
+2. Ajoutez **chaque** ligne (copie depuis votre `.env` local) :
+
+| Variable | Exemple |
+|----------|---------|
+| `VITE_EMAILJS_SERVICE_ID` | `service_ei5rzjg` |
+| `VITE_EMAILJS_TEMPLATE_ID` | `template_zpymv1j` |
+| `VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID` | `template_powi8be` |
+| `VITE_EMAILJS_PUBLIC_KEY` | votre clé publique |
+| `VITE_EMAILJS_TO_EMAIL` | `abdelhafid@digitgrow.com` |
+| `VITE_SITE_URL` | `https://votre-site.vercel.app` |
+
+3. Cochez **Production** (et Preview si besoin).
+4. **Deployments** → dernier déploiement → **⋯** → **Redeploy** (obligatoire après ajout des variables).
+5. **EmailJS** → Account → **Allowed Origins** → ajoutez `https://votre-site.vercel.app` (sinon erreur 403).
+
+- **Erreur 422 « recipients address is empty » en prod** : `VITE_EMAILJS_TO_EMAIL` manquant au **build** → refaire l’étape 4 (Redeploy).
 - Erreur **422** : template CEO → `To Email` = `{{to_email}}` + `VITE_EMAILJS_CEO_EMAIL` (ou `VITE_EMAILJS_TO_EMAIL`) dans `.env` ; template client → `To Email` = `{{user_email}}`. Redémarrez `npm run dev`.
 - Erreur **403** : EmailJS → Account → **Allowed Origins** → ajoutez `http://localhost:5173` (ou votre port Vite).
 - Historique **OK** mais rien dans Gmail : mauvais Template ID dans `.env`, ou e-mails filtrés — utilisez le template créé à l’étape 2, pas « Welcome ».

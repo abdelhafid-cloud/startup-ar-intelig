@@ -1,19 +1,43 @@
 import emailjs from '@emailjs/browser'
 
-const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID?.trim()
-const ceoNotificationTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID?.trim()
-const clientConfirmationTemplateId =
-  import.meta.env.VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID?.trim()
-const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim()
+/** Lu à chaque appel — valeurs figées au build Vite (obligatoire sur Vercel avant deploy). */
+const readEnv = () => ({
+  serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID?.trim() ?? '',
+  ceoNotificationTemplateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID?.trim() ?? '',
+  clientConfirmationTemplateId:
+    import.meta.env.VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID?.trim() ?? '',
+  publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim() ?? '',
+  ceoEmail:
+    import.meta.env.VITE_EMAILJS_CEO_EMAIL?.trim() ||
+    import.meta.env.VITE_EMAILJS_TO_EMAIL?.trim() ||
+    '',
+  siteUrl: import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, '') ?? '',
+  logoUrl: import.meta.env.VITE_LOGO_URL?.trim() ?? '',
+})
 
-const ceoEmail =
-  import.meta.env.VITE_EMAILJS_CEO_EMAIL?.trim() ||
-  import.meta.env.VITE_EMAILJS_TO_EMAIL?.trim()
+const ENV_KEYS = [
+  { key: 'VITE_EMAILJS_SERVICE_ID', get: (e) => e.serviceId },
+  { key: 'VITE_EMAILJS_TEMPLATE_ID', get: (e) => e.ceoNotificationTemplateId },
+  { key: 'VITE_EMAILJS_AUTO_REPLY_TEMPLATE_ID', get: (e) => e.clientConfirmationTemplateId },
+  { key: 'VITE_EMAILJS_PUBLIC_KEY', get: (e) => e.publicKey },
+  {
+    key: 'VITE_EMAILJS_TO_EMAIL (or VITE_EMAILJS_CEO_EMAIL)',
+    get: (e) => e.ceoEmail,
+    isEmail: true,
+  },
+]
 
-const siteUrl = import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, '')
-const logoUrl = import.meta.env.VITE_LOGO_URL?.trim()
+export const getMissingEmailEnvKeys = () => {
+  const env = readEnv()
+  return ENV_KEYS.filter(({ get, isEmail }) => {
+    const value = get(env)
+    if (!value) return true
+    if (isEmail) return !value.includes('@')
+    return false
+  }).map(({ key }) => key)
+}
 
-const getSiteUrl = () => {
+const getSiteUrl = (siteUrl) => {
   if (siteUrl) return siteUrl
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin
@@ -21,7 +45,7 @@ const getSiteUrl = () => {
   return 'https://arintelligence.ai'
 }
 
-export const getLogoUrl = () => {
+const getLogoUrl = (siteUrl, logoUrl) => {
   if (logoUrl) return logoUrl
   const base = siteUrl || (typeof window !== 'undefined' ? window.location?.origin : '')
   return base ? `${base.replace(/\/$/, '')}/startup-logos/AR.png` : ''
@@ -29,7 +53,7 @@ export const getLogoUrl = () => {
 
 let initialized = false
 
-const ensureInit = () => {
+const ensureInit = (publicKey) => {
   if (!initialized && publicKey) {
     emailjs.init({ publicKey })
     initialized = true
@@ -48,7 +72,6 @@ const getErrorMessage = (error) => {
   return status ? `${text} (${status})` : text
 }
 
-/** Champs alignés sur les noms EmailJS (sendForm) */
 const buildHiddenForm = (fields) => {
   const form = document.createElement('form')
   form.style.display = 'none'
@@ -65,7 +88,16 @@ const buildHiddenForm = (fields) => {
   return form
 }
 
-const sendTemplate = async (templateId, fields, stepLabel) => {
+const assertRecipients = (fields, requiredKeys, stepLabel, deployHint) => {
+  const empty = requiredKeys.filter((key) => !String(fields[key] ?? '').includes('@'))
+  if (empty.length > 0) {
+    throw new Error(
+      `${stepLabel}: recipient empty (${empty.join(', ')}). ${deployHint}`,
+    )
+  }
+}
+
+const sendTemplate = async ({ serviceId, publicKey, templateId, fields, stepLabel }) => {
   const form = buildHiddenForm(fields)
   try {
     const result = await emailjs.sendForm(serviceId, templateId, form, { publicKey })
@@ -75,66 +107,43 @@ const sendTemplate = async (templateId, fields, stepLabel) => {
     return result
   } catch (error) {
     const detail = getErrorMessage(error)
-    throw new Error(`${stepLabel}: ${detail}`)
+    const deployHint =
+      detail.includes('422') || detail.toLowerCase().includes('recipient')
+        ? ' On Vercel: add all VITE_EMAILJS_* variables (especially VITE_EMAILJS_TO_EMAIL), then Redeploy.'
+        : ''
+    throw new Error(`${stepLabel}: ${detail}${deployHint}`)
   } finally {
     form.remove()
   }
 }
 
-export const isEmailConfigured = () =>
-  Boolean(
-    serviceId &&
-      ceoNotificationTemplateId &&
-      clientConfirmationTemplateId &&
-      publicKey &&
-      ceoEmail?.includes('@'),
-  )
+export const isEmailConfigured = () => getMissingEmailEnvKeys().length === 0
 
-const baseFields = ({ name, clientEmail, company, projectLabels }) => ({
-  site_url: getSiteUrl(),
-  logo_url: getLogoUrl(),
+const baseFields = ({ name, clientEmail, company, projectLabels, siteUrl, logoUrl }) => ({
+  site_url: getSiteUrl(siteUrl),
+  logo_url: getLogoUrl(siteUrl, logoUrl),
   user_name: name,
   name,
   company: company || '—',
   projects: projectLabels,
 })
 
-/**
- * Mail 1 → CEO
- * To Email dans EmailJS : {{to_email}} OU {{email}} (les deux = inbox CEO)
- * Ne pas mettre {{user_email}} dans To sur ce template.
- */
-const buildCeoNotificationFields = ({
-  name,
-  clientEmail,
-  company,
-  projectLabels,
-  message,
-}) => ({
-  ...baseFields({ name, clientEmail, company, projectLabels }),
+const buildCeoNotificationFields = (params, ceoEmail) => ({
+  ...baseFields(params),
   to_email: ceoEmail,
   email: ceoEmail,
-  user_email: clientEmail,
-  message: message || '—',
-  reply_to: clientEmail,
+  user_email: params.clientEmail,
+  message: params.message || '—',
+  reply_to: params.clientEmail,
   from_name: 'AR Intelligence Website',
-  subject: `Demo request — ${projectLabels}`,
+  subject: `Demo request — ${params.projectLabels}`,
 })
 
-/**
- * Mail 2 → client (auto-reply)
- * To Email dans EmailJS : {{email}} ou {{user_email}}
- */
-const buildClientConfirmationFields = ({
-  name,
-  clientEmail,
-  company,
-  projectLabels,
-}) => ({
-  ...baseFields({ name, clientEmail, company, projectLabels }),
-  to_email: clientEmail,
-  email: clientEmail,
-  user_email: clientEmail,
+const buildClientConfirmationFields = (params, ceoEmail) => ({
+  ...baseFields(params),
+  to_email: params.clientEmail,
+  email: params.clientEmail,
+  user_email: params.clientEmail,
   reply_to: ceoEmail,
   from_name: 'AR Intelligence',
   subject: 'Your demo request is confirmed — AR Intelligence',
@@ -147,38 +156,56 @@ export const sendDemoRequest = async ({
   message,
   projectLabels,
 }) => {
-  if (!isEmailConfigured()) {
+  const missing = getMissingEmailEnvKeys()
+  if (missing.length > 0) {
     throw new Error(
-      'Email not configured. Set VITE_EMAILJS_TO_EMAIL (CEO inbox) and all VITE_EMAILJS_* keys in .env — also on Vercel if deployed.',
+      `Email not configured (missing at build time): ${missing.join(', ')}. ` +
+        'Add them in Vercel → Settings → Environment Variables, then Redeploy (not just Restart).',
     )
   }
 
-  if (!ceoEmail?.includes('@')) {
-    throw new Error('CEO email missing. Set VITE_EMAILJS_TO_EMAIL in .env and redeploy.')
+  const env = readEnv()
+  ensureInit(env.publicKey)
+
+  const params = {
+    name,
+    clientEmail,
+    company,
+    projectLabels,
+    message,
+    siteUrl: env.siteUrl,
+    logoUrl: env.logoUrl,
   }
 
-  ensureInit()
-
-  await sendTemplate(
-    ceoNotificationTemplateId,
-    buildCeoNotificationFields({
-      name,
-      clientEmail,
-      company,
-      projectLabels,
-      message,
-    }),
+  const ceoFields = buildCeoNotificationFields(params, env.ceoEmail)
+  assertRecipients(
+    ceoFields,
+    ['to_email', 'email'],
     'CEO notification',
+    'Set VITE_EMAILJS_TO_EMAIL on Vercel and Redeploy.',
   )
 
-  await sendTemplate(
-    clientConfirmationTemplateId,
-    buildClientConfirmationFields({
-      name,
-      clientEmail,
-      company,
-      projectLabels,
-    }),
+  await sendTemplate({
+    serviceId: env.serviceId,
+    publicKey: env.publicKey,
+    templateId: env.ceoNotificationTemplateId,
+    fields: ceoFields,
+    stepLabel: 'CEO notification',
+  })
+
+  const clientFields = buildClientConfirmationFields(params, env.ceoEmail)
+  assertRecipients(
+    clientFields,
+    ['email', 'user_email'],
     'Client confirmation',
+    'Check the client email in the form.',
   )
+
+  await sendTemplate({
+    serviceId: env.serviceId,
+    publicKey: env.publicKey,
+    templateId: env.clientConfirmationTemplateId,
+    fields: clientFields,
+    stepLabel: 'Client confirmation',
+  })
 }

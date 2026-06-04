@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { demoProjectOptions } from '../../data/landingContent'
-import { isEmailConfigured, sendDemoRequest } from '../../lib/sendDemoRequest'
+import {
+  getMissingEmailEnvKeys,
+  isEmailConfigured,
+  sendDemoRequest,
+} from '../../lib/sendDemoRequest'
 
 const parseProjectsFromUrl = () => {
   const params = new URLSearchParams(window.location.search)
@@ -59,8 +63,11 @@ const ContactForm = () => {
     }
 
     if (!isEmailConfigured()) {
+      const missing = getMissingEmailEnvKeys().join(', ')
       setErrorMessage(
-        'Email not configured. Set all VITE_EMAILJS_* variables in .env (see README).',
+        missing
+          ? `Email not configured (missing: ${missing}). On Vercel: add these variables and Redeploy.`
+          : 'Email not configured. Set all VITE_EMAILJS_* variables in .env (see README).',
       )
       setStatus('error')
       return
