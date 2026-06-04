@@ -24,9 +24,10 @@ Le formulaire envoie **2 e-mails** via [EmailJS](https://www.emailjs.com) :
 
 | Champ | Valeur |
 |--------|--------|
-| **To Email** | `{{to_email}}` ou `{{email}}` ← **CEO** (pas `{{user_email}}`) |
+| **To Email** | `abdelhafid@digitgrow.com` **en dur** (recommandé) ou `{{to_email}}` |
 | **From Name** | `AR Intelligence` |
-| **Reply-To** | `{{user_email}}` ← e-mail du prospect |
+| **Reply-To** | `{{client_email}}` ← e-mail du prospect |
+| **Ne pas utiliser** | `{{user_email}}` ni `{{email}}` dans **To** |
 | **Subject** | `Demo request — {{projects}}` |
 
 5. Notez le **Template ID** → `VITE_EMAILJS_TEMPLATE_ID`.
@@ -80,7 +81,7 @@ Redémarrez `npm run dev`, testez le formulaire, vérifiez Gmail (spam / Promoti
 
 ### Dépannage
 
-- **Le client reçoit les 2 e-mails, le CEO rien** : template CEO (`VITE_EMAILJS_TEMPLATE_ID`) → **To** = `{{to_email}}` ou `{{email}}`, **jamais** `{{user_email}}`. Template client → **To** = `{{email}}`. IDs différents dans `.env`.
+- **Le client reçoit les 2 e-mails, le CEO rien** : ouvrez le template **`template_zpymv1j`** (demande CEO) → **To Email** = `abdelhafid@digitgrow.com` en dur (ou `{{to_email}}`). Si **To** = `{{user_email}}`, la demande part chez le client. Recopiez le HTML de `demo-request.html` (variable `{{client_email}}`). Template client (`template_powi8be`) → **To** = `{{email}}` uniquement.
 ### Déploiement Vercel (obligatoire)
 
 Les variables `VITE_*` sont **injectées au build**, pas au runtime. Le fichier `.env` local **n’est pas** envoyé sur Vercel.

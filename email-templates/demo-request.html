@@ -1,12 +1,9 @@
 <!--
   AR Intelligence — EmailJS (type: HTML)
   Subject: Demo request — {{projects}}
-  Reply-To: {{user_email}}
-
-  Variables : {{to_email}} {{user_name}} {{user_email}} {{company}} {{projects}} {{message}} {{site_url}}
-  To Email (Settings) : {{to_email}} ou {{email}} (les deux pointent vers le CEO via le code)
-  NE PAS utiliser {{user_email}} dans To — sinon le client reçoit la demande.
-  Reply-To : {{user_email}}
+  Variables : {{to_email}} {{user_name}} {{client_email}} {{company}} {{projects}} {{message}} {{site_url}}
+  To Email (Settings) : {{to_email}} ou {{email}} ou abdelhafid@digitgrow.com en dur — JAMAIS {{user_email}}
+  Reply-To : {{client_email}}
   Logo : {{logo_url}} — URL publique (VITE_LOGO_URL ou VITE_SITE_URL)
 -->
 <style type="text/css">
@@ -132,7 +129,7 @@
                 <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6d28d9;">Email</span>
               </td>
               <td class="field-value" style="padding:14px 18px;border-bottom:1px solid #f1ecff;vertical-align:top;">
-                <a href="mailto:{{user_email}}" style="font-size:15px;line-height:1.5;color:#7c3aed;text-decoration:none;font-weight:500;word-break:break-all;">{{user_email}}</a>
+                <a href="mailto:{{client_email}}" style="font-size:15px;line-height:1.5;color:#7c3aed;text-decoration:none;font-weight:500;word-break:break-all;">{{client_email}}</a>
               </td>
             </tr>
             <tr class="field-row">

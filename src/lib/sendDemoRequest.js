@@ -109,7 +109,7 @@ const sendTemplate = async ({ serviceId, publicKey, templateId, fields, stepLabe
     const detail = getErrorMessage(error)
     const deployHint =
       detail.includes('422') || detail.toLowerCase().includes('recipient')
-        ? ' On Vercel: add all VITE_EMAILJS_* variables (especially VITE_EMAILJS_TO_EMAIL), then Redeploy.'
+        ? ' EmailJS template CEO (zpymv1j): To Email = {{to_email}} or {{email}} or abdelhafid@digitgrow.com en dur. Vercel: VITE_EMAILJS_TO_EMAIL + Redeploy.'
         : ''
     throw new Error(`${stepLabel}: ${detail}${deployHint}`)
   } finally {
@@ -128,11 +128,15 @@ const baseFields = ({ name, clientEmail, company, projectLabels, siteUrl, logoUr
   projects: projectLabels,
 })
 
+/**
+ * Mail CEO : to_email + email = inbox CEO (selon le champ To du template EmailJS).
+ * Pas de user_email ici (sinon To={{user_email}} enverrait au client).
+ */
 const buildCeoNotificationFields = (params, ceoEmail) => ({
   ...baseFields(params),
   to_email: ceoEmail,
   email: ceoEmail,
-  user_email: params.clientEmail,
+  client_email: params.clientEmail,
   message: params.message || '—',
   reply_to: params.clientEmail,
   from_name: 'AR Intelligence Website',
