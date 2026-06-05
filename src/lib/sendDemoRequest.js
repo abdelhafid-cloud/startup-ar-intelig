@@ -37,17 +37,23 @@ export const getMissingEmailEnvKeys = () => {
   }).map(({ key }) => key)
 }
 
-const getSiteUrl = (siteUrl) => {
+const isLocalUrl = (url) => /localhost|127\.0\.0\.1/i.test(url ?? '')
+
+/** En prod, ignore VITE_SITE_URL si c’est encore localhost (copié du .env local). */
+const resolveSiteUrl = (siteUrl) => {
+  const runtimeOrigin =
+    typeof window !== 'undefined' && window.location?.origin ? window.location.origin : ''
+  const runtimeIsLocal = isLocalUrl(runtimeOrigin)
+
+  if (siteUrl && !isLocalUrl(siteUrl)) return siteUrl
+  if (runtimeOrigin && !runtimeIsLocal) return runtimeOrigin
   if (siteUrl) return siteUrl
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return window.location.origin
-  }
   return 'https://arintelligence.ai'
 }
 
 const getLogoUrl = (siteUrl, logoUrl) => {
-  if (logoUrl) return logoUrl
-  const base = siteUrl || (typeof window !== 'undefined' ? window.location?.origin : '')
+  if (logoUrl && !isLocalUrl(logoUrl)) return logoUrl
+  const base = resolveSiteUrl(siteUrl)
   return base ? `${base.replace(/\/$/, '')}/startup-logos/AR.png` : ''
 }
 
@@ -109,7 +115,7 @@ const sendTemplate = async ({ serviceId, publicKey, templateId, fields, stepLabe
     const detail = getErrorMessage(error)
     const deployHint =
       detail.includes('422') || detail.toLowerCase().includes('recipient')
-        ? ' EmailJS template CEO (zpymv1j): To Email = {{to_email}} or {{email}} or abdelhafid@digitgrow.com en dur. Vercel: VITE_EMAILJS_TO_EMAIL + Redeploy.'
+        ? ' EmailJS template CEO: To Email = {{to_email}} or {{email}} (pas {{user_email}}). Vercel: VITE_EMAILJS_TO_EMAIL + Redeploy.'
         : ''
     throw new Error(`${stepLabel}: ${detail}${deployHint}`)
   } finally {
@@ -120,7 +126,7 @@ const sendTemplate = async ({ serviceId, publicKey, templateId, fields, stepLabe
 export const isEmailConfigured = () => getMissingEmailEnvKeys().length === 0
 
 const baseFields = ({ name, clientEmail, company, projectLabels, siteUrl, logoUrl }) => ({
-  site_url: getSiteUrl(siteUrl),
+  site_url: resolveSiteUrl(siteUrl),
   logo_url: getLogoUrl(siteUrl, logoUrl),
   user_name: name,
   name,
@@ -137,6 +143,8 @@ const buildCeoNotificationFields = (params, ceoEmail) => ({
   to_email: ceoEmail,
   email: ceoEmail,
   client_email: params.clientEmail,
+  // Alias si l’ancien HTML EmailJS utilise encore {{user_email}} dans le corps
+  user_email: params.clientEmail,
   message: params.message || '—',
   reply_to: params.clientEmail,
   from_name: 'AR Intelligence Website',
